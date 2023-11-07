@@ -29,25 +29,6 @@ namespace TeachTCPAsync
                     break;
                 }
 
-                if (input.Substring(0, 2) == "B:")
-                {
-                    if (input.Substring(2) == "0")
-                    {
-                        PlayerMessage playerMassage = new PlayerMessage()
-                        {
-                            data = new PlayerData()
-                            {
-                                Position = new PositionData()
-                                {
-                                    X = 1000,
-                                    Y = 1000,
-                                }
-                            }
-                        };
-                        socket.Broadcast(playerMassage);
-                    }
-                }
-
                 System.Threading.Thread.Sleep(1);//让程序挂起1毫秒，这样做的目的是避免死循环，让CPU有个短暂的喘息时间。
             }
         }

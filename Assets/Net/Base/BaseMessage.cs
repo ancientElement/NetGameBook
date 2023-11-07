@@ -15,9 +15,9 @@ namespace AE_NetWork
         public abstract void WriteIn(byte[] buffer, int beginIndex,int length);
     }
 
-    public abstract class BaseMessage<T> : BaseMessage where T : Google.Protobuf.IMessage
+    public abstract class BaseMessage<T> : BaseMessage where T : Google.Protobuf.IMessage,new()
     {
-        public T data;
+        public T data = new T();
 
         public override int GetByteLength()
         {

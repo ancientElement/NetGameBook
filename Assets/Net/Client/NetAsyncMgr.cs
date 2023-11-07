@@ -3,32 +3,34 @@ using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
-
 using NetSystem;
 using NetGameRunning;
 
 namespace AE_NetWork
 {
-    public class NetAsyncMgr : MonoBehaviour
+    public static class NetAsyncMgr
     {
-        private static NetAsyncMgr _instance;
-        public static NetAsyncMgr Instance => _instance;
+        private static Socket m_socket;
 
-        public Socket socket;
+        public static Socket Socket => m_socket;
 
         //缓存
-        private byte[] bufferBytes = new byte[1024 * 1024];
+        private static byte[] bufferBytes = new byte[1024 * 1024];
 
         //缓存长度
-        private int bufferLenght;
+        private static int bufferLenght;
 
         //消息队列
-        private Queue<BaseMessage> reciveMessageQueue = new Queue<BaseMessage>();
+        private static Queue<BaseMessage> reciveMessageQueue = new Queue<BaseMessage>();
+
+        private static int MAX_MESSAGE_FIRE = 30;
 
         //监听消息处理
         private static Dictionary<int, Action<BaseMessage>> listeners = new Dictionary<int, Action<BaseMessage>>();
 
-        private static readonly float HeartMessageIntervalTime = 120f;
+        private static readonly float heartMessageIntervalTime = 120f;
+
+        private static float heartMessageTimer = 0;
 
         static NetAsyncMgr()
         {
@@ -59,39 +61,80 @@ namespace AE_NetWork
                 Debug.LogWarning("没有这个消息类型" + messageID);
         }
 
-        private HeartMessage HeartMessage;
+        private static HeartMessage HeartMessage;
 
-        private bool isConnected;
+        private static bool isConnected;
 
-        public bool IsConnected => isConnected;
+        public static bool IsConnected => isConnected;
 
-        private void Awake()
+        public static void Update()
         {
-            _instance = this;
+            heartMessageTimer += Time.deltaTime;
+            // if (reciveMessageQueue.Count > 0)
+            // {
+            //     BaseMessage message = reciveMessageQueue.Dequeue();
+            //
+            //     if (message.GetMessageID() == MessagePool.ChatMessage_ID)
+            //     {
+            //         Debug.Log("");
+            //     }
+            //
+            //     if (message != null)
+            //     {
+            //         listeners[message.GetMessageID()]?.Invoke(message);
+            //     }
+            //     else
+            //     {
+            //         Console.WriteLine($"消息处理出错");
+            //     }
+            // }
 
-            DontDestroyOnLoad(gameObject);
-
-            //发送心跳消息
-            InvokeRepeating(nameof(SendHeartMessage), HeartMessageIntervalTime, HeartMessageIntervalTime);
+            MsgUpdate();
+            
+            if (heartMessageTimer == heartMessageIntervalTime)
+            {
+                SendHeartMessage();
+                heartMessageTimer = 0;
+            }
         }
 
-        private void Update()
+        //更新消息
+        public static void MsgUpdate()
         {
-            if (reciveMessageQueue.Count > 0)
+            //初步判断，提升效率
+            if (reciveMessageQueue.Count == 0)
             {
-                BaseMessage message = reciveMessageQueue.Dequeue();
-                if (message != null)
+                return;
+            }
+
+            //重复处理消息
+            for (int i = 0; i < MAX_MESSAGE_FIRE; i++)
+            {
+                //获取第一条消息
+                BaseMessage msgBase = null;
+                lock (reciveMessageQueue)
                 {
-                    listeners[message.GetMessageID()]?.Invoke(message);
+                    if (reciveMessageQueue.Count > 0)
+                    {
+                        msgBase = reciveMessageQueue.Dequeue();
+                    }
                 }
+
+                //分发消息
+                if (msgBase != null)
+                {
+                    listeners[msgBase.GetMessageID()]?.Invoke(msgBase);
+                }
+                //没有消息了
                 else
                 {
-                    Console.WriteLine($"消息处理出错");
+                    break;
                 }
             }
         }
 
-        private void OnDestroy()
+
+        private static void OnDestroy()
         {
             if (isConnected == true)
                 Close(true);
@@ -100,7 +143,7 @@ namespace AE_NetWork
         /// <summary>
         /// 发送心跳消息
         /// </summary>
-        private void SendHeartMessage()
+        private static void SendHeartMessage()
         {
             if (HeartMessage == null)
                 HeartMessage = new HeartMessage();
@@ -113,10 +156,10 @@ namespace AE_NetWork
         /// </summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
-        public void Connect(string host, int port)
+        public static void Connect(string host, int port)
         {
             IPEndPoint SeveriPEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
-            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             SocketAsyncEventArgs argsConnect = new SocketAsyncEventArgs();
             argsConnect.RemoteEndPoint = SeveriPEndPoint;
@@ -125,27 +168,27 @@ namespace AE_NetWork
             {
                 if (args1.SocketError == SocketError.Success)
                 {
-                    print($"连接成功: {host}:{port}");
+                    Debug.Log($"连接成功: {host}:{port}");
                     isConnected = true;
 
                     //接收消息
                     SocketAsyncEventArgs argsRecive = new SocketAsyncEventArgs();
                     argsRecive.SetBuffer(bufferBytes, 0, bufferBytes.Length);
                     argsRecive.Completed += Recive;
-                    this.socket.ReceiveAsync(argsRecive);
+                    m_socket.ReceiveAsync(argsRecive);
                 }
                 else
                 {
-                    print($"连接失败:{args1.SocketError}");
+                    Debug.Log($"连接失败:{args1.SocketError}");
                 }
             };
-            this.socket.ConnectAsync(argsConnect);
+            m_socket.ConnectAsync(argsConnect);
         }
 
         /// <summary>
         /// 接受消息
         /// </summary>
-        private void Recive(object socket, SocketAsyncEventArgs args)
+        private static void Recive(object socket, SocketAsyncEventArgs args)
         {
             if (args.SocketError == SocketError.Success)
             {
@@ -154,13 +197,13 @@ namespace AE_NetWork
                 HandleReceiveMessage(bytesLength);
 
                 //接收消息
-                if (socket != null && this.socket.Connected && isConnected)
+                if (socket != null && m_socket.Connected && isConnected)
                     args.SetBuffer(bufferLenght, bufferBytes.Length);
-                this.socket.ReceiveAsync(args);
+                m_socket.ReceiveAsync(args);
             }
             else
             {
-                print($"{args.SocketError}");
+                Debug.Log($"{args.SocketError}");
                 if (isConnected == true)
                     Close();
             }
@@ -171,7 +214,7 @@ namespace AE_NetWork
         /// </summary>
         /// <param name="bytes"></param>
         /// <param name="reciveLength"></param>
-        private void HandleReceiveMessage(int reciveLength)
+        private static void HandleReceiveMessage(int reciveLength)
         {
             try
             {
@@ -182,9 +225,10 @@ namespace AE_NetWork
                 int messageBodyLength = 0;
                 int currentIndex = 0;
 
+
                 bufferLenght += reciveLength;
 
-                while (true)//粘包
+                while (true) //粘包
                 {
                     if (bufferLenght >= 8)
                     {
@@ -194,6 +238,11 @@ namespace AE_NetWork
                         //长度
                         messageBodyLength = BitConverter.ToInt32(bufferBytes, currentIndex) - 8;
                         currentIndex += 4;
+
+                        if (massageID == MessagePool.ChatMessage_ID)
+                        {
+                            Debug.Log("");
+                        }
                     }
 
                     if (bufferLenght - currentIndex >= messageBodyLength && massageID != -1)
@@ -211,7 +260,7 @@ namespace AE_NetWork
                             break;
                         }
                     }
-                    else//分包
+                    else //分包
                     {
                         Array.Copy(bufferBytes, currentIndex - 8, bufferBytes, 0, bufferLenght - currentIndex + 8);
                         bufferLenght = bufferLenght - currentIndex + 8;
@@ -229,9 +278,9 @@ namespace AE_NetWork
         /// 发送消息
         /// </summary>
         /// <param name="state"></param>
-        public void Send(BaseMessage info)
+        public static void Send(BaseMessage info)
         {
-            if (socket != null && this.socket.Connected && isConnected)
+            if (m_socket != null && m_socket.Connected && isConnected)
             {
                 byte[] bytes = info.GetBytes();
 
@@ -241,16 +290,14 @@ namespace AE_NetWork
                 {
                     if (args.SocketError == SocketError.Success)
                     {
-
                     }
                     else
                     {
-                        print($"{args.SocketError}");
+                        Debug.Log($"{args.SocketError}");
                         Close();
                     }
                 };
-                this.socket.SendAsync(argsSend);
-
+                m_socket.SendAsync(argsSend);
             }
             else
             {
@@ -259,28 +306,28 @@ namespace AE_NetWork
             }
         }
 
-        public void SendTest(byte[] bytes)
+        public static void SendTest(byte[] bytes)
         {
-            socket.Send(bytes);
+            m_socket.Send(bytes);
         }
 
         /// <summary>
         /// 关闭
         /// </summary>
-        private void Close(bool isSelf = false)
+        private static void Close(bool isSelf = false)
         {
-            if (socket != null)
+            if (m_socket != null)
             {
                 isConnected = false;
 
-                print("断开连接");
+                Debug.Log("断开连接");
 
-                socket.Send(new QuitMessage().GetBytes());
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Disconnect(false);
-                socket.Close();
+                m_socket.Send(new QuitMessage().GetBytes());
+                m_socket.Shutdown(SocketShutdown.Both);
+                m_socket.Disconnect(false);
+                m_socket.Close();
 
-                socket = null;
+                m_socket = null;
             }
 
             if (!isSelf)

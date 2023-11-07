@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package NetGameRunning;
-
-import "PositionData.proto";
-
-message PlayerData{    
-    PositionData position=1;
-}

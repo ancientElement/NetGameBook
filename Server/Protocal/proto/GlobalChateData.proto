@@ -5,3 +5,7 @@ package NetGameRunning;
 message GlobalChatData {
     string chat_words = 1;
 }
+
+message EmptyMessageData {
+
+}

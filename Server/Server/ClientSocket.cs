@@ -13,6 +13,8 @@ namespace TeachTCPAsync
 
         public static readonly float TimeOutTime = 5f;
 
+        private static int CLIENT_BEGIN_ID = 1;
+
         static ClientSocket()
         {
             InitLister();
@@ -42,8 +44,8 @@ namespace TeachTCPAsync
                 Console.WriteLine("没有这个消息类型" + messageID);
         }
 
-        private static int CLIENT_BEGIN_ID = 1;
         public int clientID;
+
         public Socket socket;
 
         public bool Connected => socket.Connected;
