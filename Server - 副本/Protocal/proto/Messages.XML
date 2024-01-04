@@ -1,0 +1,8 @@
+<messages>
+    <message id="1" systemMessage="1" name="QuitMessage" namespace="NetSystem"/>
+    <message id="2" systemMessage="1" name="HeartMessage" namespace="NetSystem"/>
+    <message id="10002" systemMessage="0" name="ChatMessage" namespace="NetGameRunning"
+             datatype="NetGameRunning.GlobalChatData"/>
+    <message id="10003" systemMessage="0" name="EmptyMessage" namespace="NetGameRunning"
+             datatype="NetGameRunning.EmptyMessageData"/>
+</messages>

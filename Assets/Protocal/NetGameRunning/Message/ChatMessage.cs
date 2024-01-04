@@ -1,5 +1,5 @@
 namespace NetGameRunning{
-public class ChatMessage : AE_NetWork.BaseMessage<NetGameRunning.GlobalChatData>{
+public class ChatMessage : AE_ClientNet.BaseMessage<NetGameRunning.GlobalChatData>{
 public override int GetMessageID()
 {
 return 10002;

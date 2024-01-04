@@ -1,5 +1,5 @@
 namespace NetGameRunning{
-public class EmptyMessage : AE_NetWork.BaseMessage<NetGameRunning.EmptyMessageData>{
+public class EmptyMessage : AE_ClientNet.BaseMessage<NetGameRunning.EmptyMessageData>{
 public override int GetMessageID()
 {
 return 10003;

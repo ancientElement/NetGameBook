@@ -1,7 +1,8 @@
+using AE_ServerNet;
 using NetGameRunning;
 using NetSystem;
 
-namespace AE_NetWork
+namespace AE_ServerNet
 {
     public static class MessagePool
     {
