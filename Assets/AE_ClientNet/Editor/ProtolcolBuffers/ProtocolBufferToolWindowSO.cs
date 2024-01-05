@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace AE_ClientNet
 {
-    [CreateAssetMenu(menuName = "proto/ProtocolBufferToolWindowSO")]
-    public class ProtocolBufferToolWindowSO : ScriptableObject
+    public class ProtocolGenrateData 
     {
         public string protoFilePath;
         public string messageXMLFilePath;

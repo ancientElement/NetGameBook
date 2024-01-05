@@ -7,7 +7,7 @@ namespace AE_ClientNet
 
     public class ProtocolBufferToolWindow : EditorWindow
     {
-        public ProtocolBufferToolWindowSO data;
+        public ProtocolGenrateData data;
 
         private int lauage;
 
@@ -18,6 +18,11 @@ namespace AE_ClientNet
             window.Show();
         }
 
+        private void OnEnable()
+        {
+            data = new ProtocolGenrateData();
+        }
+
         private void OnGUI()
         {
             float height = 0;
@@ -25,6 +30,10 @@ namespace AE_ClientNet
             GUI.Label(new Rect(0, 0, 150, 30), "proto文件夹位置");
             Rect rect = new Rect(150, 0, 400, 30);
             data.protoFilePath = GUI.TextField(rect, data.protoFilePath);
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            {
+                data.protoFilePath = EditorUtility.OpenFolderPanel("proto文件夹位置", data.protoFilePath, "");
+            }
 
             if (Event.current.type == EventType.DragExited && rect.Contains(Event.current.mousePosition))
             {
@@ -38,6 +47,11 @@ namespace AE_ClientNet
             GUI.Label(new Rect(0, height, 150, 30), "输出位置");
             rect = new Rect(150, height, 400, 30);
             data.outputFilePath = GUI.TextField(rect, data.outputFilePath);
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            {
+                data.outputFilePath = EditorUtility.OpenFolderPanel("输出位置", data.outputFilePath, "");
+            }
+
             height += 35;
 
             if (Event.current.type == EventType.DragExited && new Rect(150, height, 400, 30).Contains(Event.current.mousePosition))
@@ -49,6 +63,11 @@ namespace AE_ClientNet
 
             GUI.Label(new Rect(0, height, 150, 30), "proto.exe位置");
             data.protoExepath = GUI.TextField(new Rect(150, height, 400, 30), data.protoExepath);
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            {
+                data.protoExepath = EditorUtility.OpenFilePanel("proto.exe位置", data.protoExepath, "exe");
+            }
+
             height += 35;
 
             lauage = GUI.Toolbar(new Rect(0, height, 550, 50), lauage, new string[] { "C#", "Java", "C++" });
