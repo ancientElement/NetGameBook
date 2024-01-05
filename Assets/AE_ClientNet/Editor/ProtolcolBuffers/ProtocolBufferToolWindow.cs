@@ -30,7 +30,7 @@ namespace AE_ClientNet
             GUI.Label(new Rect(0, 0, 150, 30), "proto文件夹位置");
             Rect rect = new Rect(150, 0, 400, 30);
             data.protoFilePath = GUI.TextField(rect, data.protoFilePath);
-            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件夹"))
             {
                 data.protoFilePath = EditorUtility.OpenFolderPanel("proto文件夹位置", data.protoFilePath, "");
             }
@@ -47,7 +47,7 @@ namespace AE_ClientNet
             GUI.Label(new Rect(0, height, 150, 30), "输出位置");
             rect = new Rect(150, height, 400, 30);
             data.outputFilePath = GUI.TextField(rect, data.outputFilePath);
-            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件夹"))
             {
                 data.outputFilePath = EditorUtility.OpenFolderPanel("输出位置", data.outputFilePath, "");
             }
@@ -98,6 +98,11 @@ namespace AE_ClientNet
 
             GUI.Label(new Rect(0, height, 150, 30), "消息文件XML位置");
             data.messageXMLFilePath = GUI.TextField(new Rect(150, height, 400, 30), data.messageXMLFilePath);
+            if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件"))
+            {
+                data.messageXMLFilePath = EditorUtility.OpenFilePanel("消息文件XML位置", data.messageXMLFilePath, "xml");
+            }
+
             height += 35;
 
             if (Event.current.type == EventType.DragExited && new Rect(0, height, 150, 30).Contains(Event.current.mousePosition))
