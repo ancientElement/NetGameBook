@@ -92,7 +92,3 @@ public static void AddAllListener()
 6发送消息
 
 客户端和服务器均有` public void Send(BaseMessage info)`方法可以发送消息
-
-7.备注
-
-根目录下的`Coding`和`Server-备份`均是备份文件夹
