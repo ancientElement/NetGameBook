@@ -51,7 +51,6 @@ public class ChatRoom : MonoBehaviour
             // );
             timer = 0;
         }
-
     }
 
     private void OnDestroy()
