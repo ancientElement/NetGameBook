@@ -43,7 +43,7 @@ namespace AE_ClientNet
                     //所有数据
                     messageStr = $"namespace {namespaceStr}" +
                                     "{\r\n" +
-                                        $"public class {classNameStr} : AE_NetWork.BaseSystemMessage" +
+                                        $"public class {classNameStr} : AE_ClientNet.BaseSystemMessage" +
                                          "{\r\n" +
                                            $"{GetMessageIDMethod}" +
                                            "\r\n}" +
@@ -54,7 +54,7 @@ namespace AE_ClientNet
                     //所有数据
                     messageStr = $"namespace {namespaceStr}" +
                                     "{\r\n" +
-                                        $"public class {classNameStr} : AE_NetWork.BaseMessage<{dataType}>" +
+                                        $"public class {classNameStr} : AE_ClientNet.BaseMessage<{dataType}>" +
                                          "{\r\n" +
                                            $"{GetMessageIDMethod}" +
                                            $"{WriteInMethod}" +
@@ -71,11 +71,19 @@ namespace AE_ClientNet
         {
             string messageIDs = "static int[] messageIDs = new int[] {";
 
-            string GetMessage = " public static BaseMessage GetMessage(int id)\r\n" + "{";
+            string MessageTypeMap = " private static readonly System.Collections.Generic.Dictionary<int, System.Func<BaseMessage>> MessageTypeMap = new System.Collections.Generic.Dictionary<int, System.Func<BaseMessage>>\r\n        {\r\n";
+
+            string GetMessage = "public static BaseMessage GetMessage(int id) " +
+                                "{" +
+                                "       if (MessageTypeMap.TryGetValue(id, out System.Func<BaseMessage> messageFactory)) {  " +
+                                "                   return messageFactory?.Invoke(); " +
+                                "       } " +
+                                "       return null;   " +
+                                "}\r\n";
 
             string messageLinkID = string.Empty;
 
-            string str = "namespace AE_NetWork\r\n" +
+            string str = "namespace AE_ClientNet\r\n" +
                         "{\r\n" +
                             "public static class MessagePool\r\n" +
                             "{\r\n";
@@ -84,24 +92,31 @@ namespace AE_ClientNet
             {
                 string classNameStr = nodeList[i].Attributes["name"].Value;
                 string messageID = nodeList[i].Attributes["id"].Value;
+                string temp_namespace = nodeList[i].Attributes["namespace"].Value;
 
                 //messageIDs
                 if (i == nodeList.Count - 1)
+                {
                     messageIDs += messageID;
+                    MessageTypeMap += $"{{{messageID},() => new {temp_namespace}.{classNameStr}()}}\r\n";
+                }
                 else
+                {
                     messageIDs += messageID + ",";
+                    MessageTypeMap += $"{{{messageID},() => new {temp_namespace}.{classNameStr}()}},\r\n";
+                }
 
                 //GetMessage
-                GetMessage += $"if (id == {messageID}) return new {classNameStr}();\r\n";
 
                 //messageLinkID
                 messageLinkID += $"public static int {classNameStr}_ID = {messageID};\r\n";
             }
 
-            messageIDs += "};\r\n" + "public static int[] MessageIDs => messageIDs;";
-            GetMessage += "return null;\r\n}";
+            messageIDs += "};\r\n" + "public static int[] MessageIDs => messageIDs;\r\n";
 
-            str += messageLinkID + messageIDs + GetMessage + "}\r\n}\r\n";
+            MessageTypeMap += "};\r\n";
+
+            str += messageLinkID + messageIDs + MessageTypeMap + GetMessage + "}\r\n}\r\n";
 
             string dirPath = $"{Application.dataPath}/Protocal/MessagePool/";
             string fileName = $"MessagePool.cs";

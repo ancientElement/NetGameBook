@@ -2,7 +2,7 @@
 
 namespace AE_ClientNet
 {
-    public abstract class BaseSystemMessage: BaseMessage
+    public abstract class BaseSystemMessage : BaseMessage
     {
         public override int GetByteLength()
         {
@@ -24,7 +24,7 @@ namespace AE_ClientNet
 
         public override void WriteIn(byte[] buffer, int beginIndex, int length)
         {
-            throw new System.NotImplementedException();
+            //
         }
     }
 }

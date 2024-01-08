@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using NetSystem;
-using NetGameRunning;
 
 namespace AE_ClientNet
 {
@@ -73,19 +72,20 @@ namespace AE_ClientNet
             else
                 Debug.LogWarning("没有这个消息类型" + messageID);
         }
-        
+
         private static HeartMessage HeartMessage;
 
         private static bool isConnected;
 
         public static bool IsConnected => isConnected;
 
+        //每帧更新
         public static void Update()
         {
             heartMessageTimer += Time.deltaTime;
-            
+
             MsgUpdate();
-            
+
             if (heartMessageTimer == heartMessageIntervalTime)
             {
                 SendHeartMessage();
@@ -134,7 +134,7 @@ namespace AE_ClientNet
                 Close(true);
         }
 
-        
+
         /// <summary>
         /// 设置最大事件分发
         /// </summary>
@@ -143,7 +143,7 @@ namespace AE_ClientNet
         {
             MAX_MESSAGE_FIRE = value;
         }
-        
+
         /// <summary>
         /// 发送心跳消息
         /// </summary>
@@ -162,6 +162,8 @@ namespace AE_ClientNet
         /// <param name="port"></param>
         public static void Connect(string host, int port)
         {
+            if (isConnected) return;
+
             IPEndPoint SeveriPEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -173,13 +175,13 @@ namespace AE_ClientNet
                 if (args1.SocketError == SocketError.Success)
                 {
                     Debug.Log($"连接成功: {host}:{port}");
-                    isConnected = true;
                     SendHeartMessage();
                     //接收消息
                     SocketAsyncEventArgs argsRecive = new SocketAsyncEventArgs();
                     argsRecive.SetBuffer(bufferBytes, 0, bufferBytes.Length);
                     argsRecive.Completed += Recive;
                     m_socket.ReceiveAsync(argsRecive);
+                    isConnected = true;
                 }
                 else
                 {

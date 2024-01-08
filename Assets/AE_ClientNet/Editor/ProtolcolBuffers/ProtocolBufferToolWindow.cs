@@ -1,4 +1,5 @@
 using System.IO;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,15 +21,28 @@ namespace AE_ClientNet
 
         private void OnEnable()
         {
-            data = new ProtocolGenrateData();
+            data = (ProtocolGenrateData)ScriptableObject.CreateInstance(typeof(ProtocolGenrateData));
         }
 
         private void OnGUI()
         {
             float height = 0;
 
-            GUI.Label(new Rect(0, 0, 150, 30), "proto文件夹位置");
-            Rect rect = new Rect(150, 0, 400, 30);
+            ProtocolGenrateData temp_data = (ProtocolGenrateData)EditorGUI.ObjectField(new Rect(0, 5, 300, 20), "生成数据保存位置", data, typeof(ProtocolGenrateData), data);
+            if (GUI.Button(new Rect(305, 5, 50, 20), "保存"))
+            {
+                EditorUtility.SetDirty(data);
+                AssetDatabase.SaveAssets();
+            }
+            if (temp_data != null)
+            {
+                data = temp_data;
+            }
+
+            height += 35;
+
+            GUI.Label(new Rect(0, height, 150, 30), "proto文件夹位置");
+            Rect rect = new Rect(150, height, 400, 30);
             data.protoFilePath = GUI.TextField(rect, data.protoFilePath);
             if (GUI.Button(new Rect(560, height, 100, 30), "点击选择文件夹"))
             {

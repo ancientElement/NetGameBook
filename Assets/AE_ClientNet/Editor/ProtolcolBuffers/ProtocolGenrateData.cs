@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace AE_ClientNet
 {
-    public class ProtocolGenrateData 
+    [CreateAssetMenu(fileName = "ProtocolGenrateData",menuName = "Protocal/ProtocolGenrateData")]
+    public class ProtocolGenrateData : ScriptableObject
     {
         public string protoFilePath;
         public string messageXMLFilePath;
