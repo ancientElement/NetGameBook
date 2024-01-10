@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df5856056ab6c6f4896890c91c73454b, type: 3}
   m_Name: ProtocolGenrateData
   m_EditorClassIdentifier: 
-  protoFilePath: 
+  protoFilePath: F:/WorkPlace/UnityProject/NetGameBook/Assets/Protocal/proto
   messageXMLFilePath: 
-  outputFilePath: 
-  protoExepath: 
+  outputFilePath: F:/WorkPlace/UnityProject/NetGameBook/Assets/Protocal/csharp
+  protoExepath: F:/WorkPlace/LearnFromTang/Teach_Net/Protobuf/protoc.exe

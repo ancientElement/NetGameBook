@@ -1,5 +1,4 @@
 using System.IO;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,11 +20,12 @@ namespace AE_ClientNet
 
         private void OnEnable()
         {
-            data = (ProtocolGenrateData)ScriptableObject.CreateInstance(typeof(ProtocolGenrateData));
+
         }
 
         private void OnGUI()
         {
+
             float height = 0;
 
             ProtocolGenrateData temp_data = (ProtocolGenrateData)EditorGUI.ObjectField(new Rect(0, 5, 300, 20), "生成数据保存位置", data, typeof(ProtocolGenrateData), data);
@@ -38,6 +38,10 @@ namespace AE_ClientNet
             {
                 data = temp_data;
             }
+
+
+            if (data == null)
+                return;
 
             height += 35;
 
