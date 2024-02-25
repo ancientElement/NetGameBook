@@ -10,17 +10,6 @@ namespace AE_ClientServerNet
 {
     public class ServerSocket
     {
-        public bool Started { get; private set; }
-        
-        public static int TimerInterval = 1000;
-
-        private static Action<object> Timer;
-
-        /// <summary>
-        /// 添加计时器回调
-        /// </summary>
-        public static void AddTimerListener(Action<object> callback) { Timer += callback; }
-
         public Socket socket;
         public Dictionary<int, ClientSocket> clientSockets = new Dictionary<int, ClientSocket>();
 
@@ -38,23 +27,11 @@ namespace AE_ClientServerNet
             {
                 socket.Bind(ipEndPoint);
                 socket.Listen(num);
-                Started = true;
                 this.socket.BeginAccept(Accept, this.socket);
             }
             catch (Exception e)
             {
                 Debug.Log($"服务器开启失败: {e.Message}");
-            }
-            // ThreadPool.QueueUserWorkItem(TimerFn);
-        }
-
-        private void TimerFn(object? state)
-        {
-            while (true)
-            {
-                Thread.Sleep(TimerInterval);
-
-                Timer?.Invoke(this);
             }
         }
 
@@ -67,12 +44,15 @@ namespace AE_ClientServerNet
             try
             {
                 Socket clientSocket = this.socket.EndAccept(result);
-                ClientSocket client = new ClientSocket(clientSocket);
+
+
+                ClientSocket client = new ClientSocket(clientSocket, this);
                 clientSockets.Add(client.clientID, client);
 
                 Debug.Log($"客户端[{clientSocket.RemoteEndPoint}]连接服务器");
 
                 this.socket.BeginAccept(Accept, this.socket);
+
             }
             catch (Exception e)
             {
@@ -105,7 +85,7 @@ namespace AE_ClientServerNet
             {
                 lock (clientSockets)
                 {
-                    //Debug.Log($"客户端: {socket.socket.RemoteEndPoint} 断开连接");
+                    Debug.Log($"客户端: {socket.socket.RemoteEndPoint} 断开连接");
                     socket.Close();
                     if (clientSockets.ContainsKey(socket.clientID))
                         clientSockets.Remove(socket.clientID);

@@ -12,7 +12,7 @@ namespace AE_ServerNet
             ChatMessage chatMessage = (ChatMessage)message;
             chatMessage.data.ChatWords = $"[{client.socket.RemoteEndPoint}]" + chatMessage.data.ChatWords;
             Program.socket.Broadcast(chatMessage);
-            Console.WriteLine($"转发消息来自:[{client.socket.RemoteEndPoint}]");
+            Debug.Log($"转发消息来自:[{client.socket.RemoteEndPoint}]");
         }
 
         public static void EmptyMessageHandler(BaseMessage arg1, ClientSocket client)

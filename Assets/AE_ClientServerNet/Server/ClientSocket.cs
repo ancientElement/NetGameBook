@@ -12,10 +12,6 @@ namespace AE_ClientServerNet
         #region Static
         private static Dictionary<int, Action<BaseMessage, ClientSocket>> listeners = new Dictionary<int, Action<BaseMessage, ClientSocket>>();
 
-        private static Action<ClientSocket> Timer;
-
-        private static int TimerInterval = 1000;
-
         public static readonly float TimeOutTime = 1120f;
 
         private static int CLIENT_BEGIN_ID = 1;
@@ -50,16 +46,13 @@ namespace AE_ClientServerNet
                 Debug.Log("没有这个消息类型" + messageID);
         }
 
-        ///// <summary>
-        ///// 添加计时器回调
-        ///// </summary>
-        //public static void AddTimerListener(Action<ClientSocket> callback) { Timer += callback; }
-
         #endregion
 
         public int clientID;
 
         public Socket socket;
+
+        public ServerSocket serverSocket;
 
         public bool Connected => socket.Connected;
 
@@ -80,35 +73,38 @@ namespace AE_ClientServerNet
         //发送缓存
         Queue<ByteArray> writeQueue = new Queue<ByteArray>();
 
-        public ClientSocket(Socket socket)
+        public ClientSocket(Socket socket, ServerSocket serverSocket)
         {
             this.clientID = CLIENT_BEGIN_ID;
             this.socket = socket;
+            this.serverSocket = serverSocket;
             ++CLIENT_BEGIN_ID;
 
-            this.socket.BeginReceive(bufferBytes, bufferLenght, bufferBytes.Length - bufferLenght, SocketFlags.None, ReciveCallback, null);
-
-            //socket.BeginReceive(readBuff.bytes, readBuff.writeIdx,
-            //readBuff.remain, 0, Receive, socket);
+            SocketAsyncEventArgs argsRecive = new SocketAsyncEventArgs();
+            argsRecive.SetBuffer(bufferBytes, 0, bufferBytes.Length);
+            argsRecive.Completed += ReciveCallback;
+            this.socket.ReceiveAsync(argsRecive);
         }
 
-        private void ReciveCallback(IAsyncResult result)
+        private void ReciveCallback(object obj, SocketAsyncEventArgs args)
         {
             try
             {
                 if (this.socket != null && this.socket.Connected)
                 {
-                    int byteLength = this.socket.EndReceive(result);
+                    int byteLength = args.BytesTransferred;
 
-                    HandleReceiveMessage(byteLength, () =>
-                    {
-                        this.socket.BeginReceive(bufferBytes, bufferLenght, bufferBytes.Length - bufferLenght, SocketFlags.None, ReciveCallback, null);
-                    });
+                    HandleReceiveMessage(byteLength);
+
+                    //接收消息
+                    if (socket != null && this.socket.Connected)
+                        args.SetBuffer(bufferLenght, bufferBytes.Length);
+                    this.socket.ReceiveAsync(args);
                 }
                 else
                 {
                     Debug.Log("没有连接，不用再收消息了");
-                    ServerProgram.socket.CloseClientSocket(this);
+                    serverSocket.CloseClientSocket(this);
                 }
             }
             catch (Exception e)
@@ -121,11 +117,11 @@ namespace AE_ClientServerNet
                 {
                     Debug.Log($"接收消息出错 [{socket.RemoteEndPoint}] :{e.Message}");
                 }
-                ServerProgram.socket.CloseClientSocket(this);
+                serverSocket.CloseClientSocket(this);
             }
         }
 
-        private void HandleReceiveMessage(int bytesLength, Action callback)
+        private void HandleReceiveMessage(int bytesLength)
         {
             byte[] bytes = readBuff.bytes;
 
@@ -179,9 +175,6 @@ namespace AE_ClientServerNet
                     break;
                 }
             }
-
-            //继续接收
-            callback?.Invoke();
         }
 
         private void HandleMassage(object? state)
@@ -207,29 +200,33 @@ namespace AE_ClientServerNet
         {
             if (!Connected)
             {
-                ServerProgram.socket.CloseClientSocket(this);
+                serverSocket.CloseClientSocket(this);
                 return;
             }
             try
             {
-                this.socket.BeginSend(info.GetBytes(), 0, info.GetByteLength(), SocketFlags.None, SendCallback, null);
+                SocketAsyncEventArgs argsSend = new SocketAsyncEventArgs();
+                byte[] bytes = info.GetBytes();
+                argsSend.SetBuffer(bytes, 0, bytes.Length);
+                argsSend.Completed += SendCallback;
+                this.socket.SendAsync(argsSend);
             }
             catch (Exception e)
             {
                 Debug.Log($"发送消息出错: {e.Message}");
-                ServerProgram.socket.CloseClientSocket(this);
+                serverSocket.CloseClientSocket(this);
             }
         }
 
-        private void SendCallback(IAsyncResult result)
+        private void SendCallback(object obj, SocketAsyncEventArgs args)
         {
-            try
+            if (args.SocketError == SocketError.Success)
             {
-                this.socket.EndSend(result);
             }
-            catch (SocketException e)
+            else
             {
-                Debug.Log($"发送消息出错 {e.SocketErrorCode}:{e.Message}");
+                Debug.Log($"{args.SocketError}");
+                Close();
             }
         }
 

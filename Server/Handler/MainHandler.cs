@@ -11,7 +11,7 @@
 
         private static void HeartMessageHandler(BaseMessage arg1, ClientSocket client)
         {
-            Console.WriteLine($"接收到心跳消息:[{client.socket.RemoteEndPoint}]");
+            Debug.Log($"接收到心跳消息:[{client.socket.RemoteEndPoint}]");
         }
     }
 }

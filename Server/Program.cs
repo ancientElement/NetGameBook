@@ -16,7 +16,7 @@ namespace AE_ServerNet
             socket = new ServerSocket();
             socket.Start(LocalIP, LocalPoint, 1024);
 
-            Console.WriteLine("服务器开启成功");
+            Debug.Log("服务器开启成功");
 
             while (true)
             {

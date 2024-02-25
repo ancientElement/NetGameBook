@@ -3,20 +3,14 @@ using UnityEngine;
 
 namespace AE_ClientServerNet
 {
-    public class ServerProgram
+    public class Program
     {
         static string LocalIP = "127.0.0.1";
         static int LocalPoint = 8080;
 
         public static ServerSocket socket;
-        public static bool Started
-        {
-            get
-            {
-                if (socket == null) return false;
-                return socket.Started;
-            }
-        }
+
+        public static bool Started;
 
         public static void Start(string ip, int port)
         {
@@ -24,6 +18,7 @@ namespace AE_ClientServerNet
             LocalIP = ip;
             LocalPoint = port;
             ThreadPool.QueueUserWorkItem(Main);
+            Started = true;
         }
 
         public static void Stop()

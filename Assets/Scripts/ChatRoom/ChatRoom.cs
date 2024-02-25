@@ -55,7 +55,7 @@ public class ChatRoom : MonoBehaviour
 
     private void OnDestroy()
     {
-        ServerProgram.Stop();
+        Program.Stop();
     }
 
     IEnumerator SendEnter()

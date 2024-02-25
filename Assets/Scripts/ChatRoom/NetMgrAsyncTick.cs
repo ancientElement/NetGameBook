@@ -48,13 +48,13 @@ public class NetMgrAsyncTick : MonoBehaviour
 
         startServerButton.onClick.AddListener(() =>
         {
-            if (ServerProgram.Started) return;
+            if (Program.Started) return;
 
             openServerIP = GetLocalIPAddress();
             openServerIPAndPointText.text = openServerIP + ":" + openServerPoint;
             serverIPAndPoint = openServerIP + ":" + openServerPoint;
             serverIPAndPortInputFiled.text = serverIPAndPoint;
-            ServerProgram.Start(openServerIP, openServerPoint);
+            Program.Start(openServerIP, openServerPoint);
 
             startConnect = true;
             NetAsyncMgr.Connect(serverIP, serverPort);
